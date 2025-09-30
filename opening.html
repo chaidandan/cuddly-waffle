@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Liquid Fill Glass</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0b1a3d;
+    font-family: sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bokeh {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .bokeh div {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.3;
+    background: #ffffff;
+    animation: moveBokeh linear infinite;
+  }
+
+  @keyframes moveBokeh {
+    0% { transform: translateY(0) scale(1); opacity: 0.3; }
+    50% { opacity: 0.5; }
+    100% { transform: translateY(-800px) scale(1.5); opacity: 0; }
+  }
+
+  .box {
+    position: relative;
+    width: 650px;
+    height: 400px;
+    border-radius: 30px;
+    background: #fff;
+    border: 6px solid #C0C0C0;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    z-index: 2;
+    cursor: pointer;
+  }
+
+  .text {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #fff;
+    pointer-events: none;
+    z-index: 3;
+    white-space: pre-line;
+    line-height: 2.2rem;
+  }
+
+  .text span {
+    display: inline-block;
+    animation: wave 1.5s infinite;
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+
+  svg {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .wave {
+    fill: #000000;
+  }
+
+  .sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  #secretBtn {
+    position: fixed;
+    width: 120px;
+    height: 60px;
+    font-size: 0.9rem; 
+    background: #ffffff; 
+    color: #000000; 
+    border: 4px solid #000000; 
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px #0b1a3d; 
+    display: none; 
+    z-index: 10;
+    text-align: center;
+    line-height: 1.2;
+    white-space: pre-line; 
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  #secretBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px #0b1a3d;
+  }
+
+  /* Cards updated with pop-up animation */
+  .card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    width: 400px;
+    max-width: 90%;
+    padding: 20px;
+    background: #ffffff;
+    border: 4px solid #000000;
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    z-index: 20;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: normal;
+    display: none;
+    opacity: 0;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+  }
+
+  .card.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .card button.close {
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #000;
+  }
+
+  /* Final message layout with fade-in */
+  .final-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0b1a3d;
+    color: #fff;
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    z-index: 15;
+    padding: 50px 20px;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .final-message.show {
+    opacity: 1;
+  }
+
+  .final-message .icon {
+    font-size: 4rem;
+  }
+
+  .final-message .text {
+    font-size: 2rem;
+    line-height: 3rem;
+    margin: 20px 0;
+    white-space: normal;
+  }
+
+  .final-message .choice-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .final-message .choice-buttons button {
+    padding: 12px 24px;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    border: none;
+    background: #fff;
+    color: #000;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .final-message .choice-buttons button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 12px #0b1a3d;
+  }
+
+  @media (max-width: 600px) {
+    .box { width: 90%; height: 300px; }
+    .text { font-size: 1.5rem; line-height: 2rem; }
+    .final-message .icon { font-size: 3rem; }
+    .final-message .text { font-size: 1.5rem; line-height: 2rem; }
+    .final-message .choice-buttons button { font-size: 1rem; padding: 8px 16px; }
+    .card { width: 90%; font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="bokeh" id="bokeh"></div>
+
+<div class="box" id="box">
+  <svg viewBox="0 0 650 400" preserveAspectRatio="none">
+    <path class="wave" d="M0,400 C150,380 500,420 650,400 L650,400 L0,400 Z"></path>
+  </svg>
+  <div class="text" id="wavyText">YAYY!! ITS YOUR SPECIAL DAY <3</div>
+</div>
+
+<button id="secretBtn">hehe wanna know a secret?</button>
+
+<!-- Cards -->
+<div class="card" id="yesCard">
+  <button class="close">❌</button>
+  <p>✨ on feb 14th 2023, i saw a dumbass and he was silly, goofy and stupid af but he turned out to be a person who would give his all to his people, he was full of love, caring and warmth. he healed parts of people while hurting himself. he deserves so many good things but impatient to wait for them, and today he's one year older but im not sure if he's any wiser hehe. Anyways, i hope this year brings that stupid guy closer to everything he deserves and he has been dreaming about. im really glad i got to know him, regardless of where life takes us, i will always remember him as a fond memory. i wish i could do this in person but we gotta improvise, happy birthday manish<3 ✨</p>
+</div>
+
+<div class="card" id="noCard">
+  <button class="close">❌</button>
+  <p>birthday roju kuda tittinchukovali ani unda neeku, muskoni yes nokku elli pooo 😒🔪</p>
+</div>
+
+<!-- Final message -->
+<div class="final-message" id="finalMessage">
+  <div class="icon">💌</div>
+  <div class="text">i have something else for you.<br>wanna see?</div>
+  <div class="choice-buttons">
+    <button id="yesBtnFinal">Yes</button>
+    <button id="noBtnFinal">No</button>
+  </div>
+</div>
+
+<script>
+const textEl = document.getElementById('wavyText');
+const originalText = textEl.textContent;
+textEl.innerHTML = ''; 
+originalText.split('').forEach((char, i) => {
+  const span = document.createElement('span');
+  span.textContent = char;
+  span.style.animationDelay = (i * 0.05) + 's';
+  if (char === ' ') span.style.marginRight = '0.5em';
+  textEl.appendChild(span);
+});
+
+const path = document.querySelector('.wave');
+const box = document.querySelector('.box');
+const secretBtn = document.getElementById('secretBtn');
+const finalMessage = document.getElementById('finalMessage');
+let height = 400;
+const maxHeight = 0;
+
+function riseLiquid() {
+  height -= 1.5;
+  if (height <= maxHeight) {
+    height = maxHeight;
+    clearInterval(riseInterval);
+    secretBtn.style.display = 'block';
+    placeButtonRandomly();
+  }
+  const waveHeight = height + 20 * Math.sin(Date.now() / 500);
+  path.setAttribute('d', `
+    M0,${waveHeight} 
+    C150,${waveHeight+20*Math.sin(Date.now()/300)} 
+    500,${waveHeight-20*Math.sin(Date.now()/400)} 
+    650,${waveHeight} 
+    L650,400 L0,400 Z
+  `);
+}
+
+const riseInterval = setInterval(riseLiquid, 20);
+
+function createSparkle() {
+  const sparkle = document.createElement('div');
+  sparkle.classList.add('sparkle');
+  sparkle.style.left = Math.random() * 100 + '%';
+  sparkle.style.top = height + 'px';
+  box.appendChild(sparkle);
+  setTimeout(() => sparkle.remove(), 2000);
+}
+setInterval(createSparkle, 200);
+
+const bokehContainer = document.getElementById('bokeh');
+for (let i = 0; i < 25; i++) {
+  const b = document.createElement('div');
+  const size = Math.random() * 50 + 20 + 'px';
+  b.style.width = size;
+  b.style.height = size;
+  b.style.left = Math.random() * 100 + '%';
+  b.style.top = Math.random() * 100 + '%';
+  b.style.animationDuration = (10 + Math.random() * 10) + 's';
+  bokehContainer.appendChild(b);
+}
+
+function placeButtonRandomly() {
+  const btnWidth = secretBtn.offsetWidth;
+  const btnHeight = secretBtn.offsetHeight;
+  const boxRect = box.getBoundingClientRect();
+  let randX, randY;
+  do {
+    randX = Math.random() * (window.innerWidth - btnWidth);
+    randY = Math.random() * (window.innerHeight - btnHeight);
+  } while (
+    randX + btnWidth > boxRect.left &&
+    randX < boxRect.right &&
+    randY + btnHeight > boxRect.top &&
+    randY < boxRect.bottom
+  );
+  secretBtn.style.left = randX + 'px';
+  secretBtn.style.top = randY + 'px';
+}
+
+secretBtn.addEventListener('click', () => {
+  secretBtn.style.display = 'none';
+  const lines = ["MANISHHHHH MUSALODIVI AIPOYAVV"];
+  const finalText = "anyways💅"; 
+  textEl.textContent = ''; 
+  let lineIndex = 0;
+  let charIndex = 0;
+  function typeLine() {
+    if (lineIndex < lines.length) {
+      if (charIndex < lines[lineIndex].length) {
+        textEl.textContent += lines[lineIndex][charIndex];
+        charIndex++;
+        setTimeout(typeLine, 120);
+      } else {
+        textEl.textContent += "\n\n";
+        lineIndex++;
+        charIndex = 0;
+        setTimeout(typeLine, 400);
+      }
+    } else {
+      setTimeout(() => {
+        textEl.textContent = finalText;
+        setTimeout(() => {
+          box.style.display = 'none';
+          finalMessage.style.display = 'flex';
+          setTimeout(() => finalMessage.classList.add('show'), 10);
+        }, 1000);
+      }, 500);
+    }
+  }
+  typeLine();
+});
+
+document.getElementById('yesBtnFinal').addEventListener('click', () => {
+  finalMessage.style.display = 'none';
+  const yesCard = document.getElementById('yesCard');
+  yesCard.style.display = 'block';
+  setTimeout(() => yesCard.classList.add('show'), 10);
+});
+
+document.getElementById('noBtnFinal').addEventListener('click', () => {
+  finalMessage.style.display = 'none';
+  const noCard = document.getElementById('noCard');
+  noCard.style.display = 'block';
+  setTimeout(() => noCard.classList.add('show'), 10);
+});
+
+document.querySelectorAll('.card .close').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const card = e.target.parentElement;
+    card.classList.remove('show');
+    setTimeout(() => {
+      card.style.display = 'none';
+      finalMessage.style.display = 'flex';
+      setTimeout(() => finalMessage.classList.add('show'), 10);
+    }, 400);
+  });
+});
+</script>
+</body>
+</html>
